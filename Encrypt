@@ -1,1 +1,84 @@
-print()
+from cryptography.fernet import Fernet
+import os
+
+def generate_key():
+    """Generates a key and saves it to a file."""
+    key = Fernet.generate_key()
+    with open("key.key", "wb") as key_file:
+        key_file.write(key)
+    print("Encryption key saved to key.key")
+
+def load_key():
+    """Loads the key from the key.key file."""
+    if not os.path.exists("key.key"):
+        raise FileNotFoundError("Key file not found. Please generate a key first.")
+    with open("key.key", "rb") as key_file:
+        return key_file.read()
+
+def encrypt_file(file_path):
+    """Encrypts a file with the generated key."""
+    key = load_key()
+    fernet = Fernet(key)
+
+    with open(file_path, "rb") as file:
+        data = file.read()
+
+    encrypted_data = fernet.encrypt(data)
+
+    with open(file_path, "wb") as file:
+        file.write(encrypted_data)
+
+    print(f"File '{file_path}' has been encrypted.")
+
+def decrypt_file(file_path):
+    """Decrypts a file with the generated key."""
+    key = load_key()
+    fernet = Fernet(key)
+
+    with open(file_path, "rb") as file:
+        encrypted_data = file.read()
+
+    decrypted_data = fernet.decrypt(encrypted_data)
+
+    with open(file_path, "wb") as file:
+        file.write(decrypted_data)
+
+    print(f"File '{file_path}' has been decrypted.")
+
+def get_user_choice():
+    """Gets the user's choice in a non-interactive or restricted environment."""
+    choices = {
+        "1": "Generate Key",
+        "2": "Encrypt File",
+        "3": "Decrypt File",
+        "4": "Exit"
+    }
+    while True:
+        print("\nFile Encryption/Decryption Tool")
+        for key, value in choices.items():
+            print(f"{key}. {value}")
+        choice = input("Enter your choice: ")
+        if choice in choices:
+            return choice
+        print("Invalid choice. Please select 1, 2, 3, or 4.")
+
+if __name__ == "__main__":
+    while True:
+        try:
+            choice = get_user_choice()
+
+            if choice == "1":
+                generate_key()
+            elif choice == "2":
+                file_path = input("Enter the path to the file to encrypt: ").strip('"')
+                encrypt_file(file_path)
+            elif choice == "3":
+                file_path = input("Enter the path to the file to decrypt: ").strip('"')
+                decrypt_file(file_path)
+            elif choice == "4":
+                print("Exiting the tool. Goodbye!")
+                break
+        except EOFError:
+            print("Input stream ended unexpectedly. Ensure a proper input source is available.")
+        except Exception as e:
+            print(f"An error occurred: {e}")
